@@ -1,19 +1,16 @@
 use sqlite::State;
-use std::{collections::HashMap, env, error, fs};
+use std::{collections::HashMap, error};
 
-const SQL_FILE_NAME: &str = "init.sql";
+const INIT_SQL: &str = include_str!("schema_registry_v1.0.0.sql");
 
 pub struct DatabaseManager {
     connection: sqlite::Connection,
 }
 
 impl DatabaseManager {
-    pub fn new() -> Result<Self, Box<dyn error::Error>> {
+    pub fn init() -> Result<Self, Box<dyn error::Error>> {
         let connection = sqlite::open("registry.db")?;
-        let current_dir = env::current_dir()?;
-        let sql_path = current_dir.join("src").join("database").join(SQL_FILE_NAME);
-        let query = fs::read_to_string(sql_path)?;
-        connection.execute(&query)?;
+        connection.execute(INIT_SQL)?;
         Ok(Self { connection })
     }
 
@@ -27,10 +24,12 @@ impl DatabaseManager {
     // }
 
     pub fn find_all(&self) -> Result<HashMap<String, String>, Box<dyn error::Error>> {
-        let query = "SELECT name, url FROM registry";
+        let query = "SELECT name, url, is_current FROM registry";
         let mut map: HashMap<String, String> = HashMap::new();
         let mut statement = self.connection.prepare(query)?;
         while let Ok(State::Row) = statement.next() {
+            // let is_current = statement.read::<i64, _>("is_current")?;
+            // println!("is_current: {}", is_current);
             map.insert(
                 statement.read::<String, _>("name")?,
                 statement.read::<String, _>("url")?,
