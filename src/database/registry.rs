@@ -1,40 +1,61 @@
-use sqlite::State;
-use std::{collections::HashMap, error};
+use rusqlite::Connection;
+use std::error;
 
-const INIT_SQL: &str = include_str!("schema_registry_v1.0.0.sql");
+use crate::npm;
+
+const SCHEMA_REGISTRY_V1_0_0: &str = include_str!("schema_registry_v1.0.0.sql");
 
 pub struct DatabaseManager {
-    connection: sqlite::Connection,
+    connection: Connection,
+}
+
+#[derive(Debug)]
+pub struct Registry {
+    pub name: String,
+    pub url: String,
+    pub is_current: bool,
 }
 
 impl DatabaseManager {
     pub fn init() -> Result<Self, Box<dyn error::Error>> {
-        let connection = sqlite::open("registry.db")?;
-        connection.execute(INIT_SQL)?;
+        let connection = Connection::open("registry.db")?;
+        connection.execute_batch(SCHEMA_REGISTRY_V1_0_0)?;
         Ok(Self { connection })
     }
 
-    // pub fn create_registry(&self, name: &str, url: &str) -> Result<(), Box<dyn error::Error>> {
-    //     let insert_sql = format!(
-    //         "INSERT INTO registry (name, url) VALUES ('{}', '{}')",
-    //         name, url
-    //     );
-    //     self.connection.execute(&insert_sql)?;
-    //     Ok(())
-    // }
+    pub fn find_all(&self) -> Result<Vec<Registry>, Box<dyn error::Error>> {
+        let current_registry = npm::config::get_registry()?;
+        self.update_current(&current_registry)?;
+        let mut stmt = self
+            .connection
+            .prepare("SELECT name, url, is_current FROM registry")?;
+        let registry_vec: Vec<Registry> = stmt
+            .query_map([], |row| {
+                Ok(Registry {
+                    name: row.get(0)?,
+                    url: row.get(1)?,
+                    is_current: row.get(2)?,
+                })
+            })?
+            .collect::<Result<_, _>>()?;
+        Ok(registry_vec)
+    }
 
-    pub fn find_all(&self) -> Result<HashMap<String, String>, Box<dyn error::Error>> {
-        let query = "SELECT name, url, is_current FROM registry";
-        let mut map: HashMap<String, String> = HashMap::new();
-        let mut statement = self.connection.prepare(query)?;
-        while let Ok(State::Row) = statement.next() {
-            // let is_current = statement.read::<i64, _>("is_current")?;
-            // println!("is_current: {}", is_current);
-            map.insert(
-                statement.read::<String, _>("name")?,
-                statement.read::<String, _>("url")?,
-            );
-        }
-        Ok(map)
+    pub fn find_url_by_name(&self, name: &str) -> Result<String, rusqlite::Error> {
+        let mut stmt = self
+            .connection
+            .prepare("SELECT url FROM registry WHERE name = ?")?;
+        let url = stmt.query_row([name], |row| row.get(0))?;
+        Ok(url)
+    }
+
+    pub fn update_current(&self, current_registry: &str) -> Result<(), Box<dyn error::Error>> {
+        self.connection
+            .execute("UPDATE registry SET is_current = 0", ())?;
+        self.connection.execute(
+            "UPDATE registry SET is_current = 1 WHERE url = ?",
+            [current_registry],
+        )?;
+        Ok(())
     }
 }
