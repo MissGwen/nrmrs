@@ -127,6 +127,14 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a6cb138bb79a146c1bd460005623e142ef0181e3d0219cb493e02f7d08a35695"
 
 [[package]]
+name = "nrmrs"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "sqlite",
+]
+
+[[package]]
 name = "once_cell_polyfill"
 version = "1.70.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -137,14 +145,6 @@ name = "pkg-config"
 version = "0.3.32"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7edddbd0b52d732b21ad9a5fab5c704c14cd949e5e9a1ec5929a24fded1b904c"
-
-[[package]]
-name = "prettier-rust"
-version = "0.1.0"
-dependencies = [
- "clap",
- "sqlite",
-]
 
 [[package]]
 name = "proc-macro2"
