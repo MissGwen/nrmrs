@@ -19,7 +19,8 @@ fn main() -> result::Result<(), Box<dyn error::Error>> {
         }
         cli::lib::Commands::Use { name } => {
             let url = connection.find_url_by_name(&name)?;
-            npm::config::set_registry(&url);
+            let success_msg = npm::config::set_registry(&url, &name)?;
+            println!("{}", success_msg);
         }
     }
     Ok(())
