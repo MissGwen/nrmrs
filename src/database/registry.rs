@@ -9,7 +9,7 @@ const SCHEMA_REGISTRY_V1_0_0: &str = include_str!("schema_registry_v1.0.0.sql");
 #[derive(Error, Debug)]
 pub enum FindAllError {
     #[error("Failed to execute SQL query: {0}")]
-    SqlError(#[from] rusqlite::Error),
+    SelectError(#[from] rusqlite::Error),
     #[error("Failed to retrieve registry URL: {0}")]
     RegistryError(#[from] Box<dyn error::Error>),
 }
@@ -27,7 +27,7 @@ pub struct Registry {
 
 impl DatabaseManager {
     pub fn init() -> Result<Self, rusqlite::Error> {
-        let connection = Connection::open("registry.db")?;
+        let connection = Connection::open("npm-registry.db")?;
         connection.execute_batch(SCHEMA_REGISTRY_V1_0_0)?;
         Ok(Self { connection })
     }
