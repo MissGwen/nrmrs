@@ -18,9 +18,4 @@ CREATE TABLE IF NOT EXISTS registry (
 -- 插入数据，判断名称是否重复，不重复则添加
 INSERT INTO registry (name, url) SELECT 'npm', 'https://registry.npmjs.org/' WHERE NOT EXISTS (SELECT 1 FROM registry WHERE name = 'npm');
 INSERT INTO registry (name, url) SELECT 'yarn', 'https://registry.yarnpkg.com/' WHERE NOT EXISTS (SELECT 1 FROM registry WHERE name = 'yarn');
-INSERT INTO registry (name, url) SELECT 'tencent', 'https://mirrors.tencent.com/npm/' WHERE NOT EXISTS (SELECT 1 FROM registry WHERE name = 'tencent');
-INSERT INTO registry (name, url) SELECT 'cnpm', 'https://r.cnpmjs.org/' WHERE NOT EXISTS (SELECT 1 FROM registry WHERE name = 'cnpm');
 INSERT INTO registry (name, url) SELECT 'taobao', 'https://registry.npmmirror.com/' WHERE NOT EXISTS (SELECT 1 FROM registry WHERE name = 'taobao');
-INSERT INTO registry (name, url) SELECT 'npmMirror', 'https://skimdb.npmjs.com/registry/' WHERE NOT EXISTS (SELECT 1 FROM registry WHERE name = 'npmMirror');
-INSERT INTO registry (name, url) SELECT 'huawei', 'https://repo.huaweicloud.com/repository/npm/' WHERE NOT EXISTS (SELECT 1 FROM registry WHERE name = 'huawei');
-INSERT INTO registry (name, url) SELECT 'newrep', 'https://nexus.devops.quadripline.com/repository/npm-group/' WHERE NOT EXISTS (SELECT 1 FROM registry WHERE name = 'newrep');
