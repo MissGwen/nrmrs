@@ -7,3 +7,4 @@ authors = ["MissGwen <missgwen0211@gmail.com>"]
 [dependencies]
 clap = { version = "4.5.53", features = ["derive"] }
 rusqlite = { version = "0.37.0", features = ["bundled"] }
+thiserror = "2.0.17"

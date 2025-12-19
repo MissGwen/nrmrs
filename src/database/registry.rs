@@ -1,9 +1,18 @@
 use rusqlite::Connection;
 use std::error;
+use thiserror::Error;
 
 use crate::npm;
 
 const SCHEMA_REGISTRY_V1_0_0: &str = include_str!("schema_registry_v1.0.0.sql");
+
+#[derive(Error, Debug)]
+pub enum FindAllError {
+    #[error("Failed to execute SQL query: {0}")]
+    SqlError(#[from] rusqlite::Error),
+    #[error("Failed to retrieve registry URL: {0}")]
+    RegistryError(#[from] Box<dyn error::Error>),
+}
 
 pub struct DatabaseManager {
     connection: Connection,
@@ -17,13 +26,13 @@ pub struct Registry {
 }
 
 impl DatabaseManager {
-    pub fn init() -> Result<Self, Box<dyn error::Error>> {
+    pub fn init() -> Result<Self, rusqlite::Error> {
         let connection = Connection::open("registry.db")?;
         connection.execute_batch(SCHEMA_REGISTRY_V1_0_0)?;
         Ok(Self { connection })
     }
 
-    pub fn find_all(&self) -> Result<Vec<Registry>, Box<dyn error::Error>> {
+    pub fn find_all(&self) -> Result<Vec<Registry>, FindAllError> {
         let current_registry = npm::config::get_registry()?;
         self.update_current(&current_registry)?;
         let mut stmt = self
@@ -49,7 +58,7 @@ impl DatabaseManager {
         Ok(url)
     }
 
-    pub fn update_current(&self, current_registry: &str) -> Result<(), Box<dyn error::Error>> {
+    pub fn update_current(&self, current_registry: &str) -> Result<(), rusqlite::Error> {
         self.connection
             .execute("UPDATE registry SET is_current = 0", ())?;
         self.connection.execute(

@@ -1,6 +1,4 @@
 {
   "Codegeex.RepoIndex": true,
-  "cSpell.words": [
-    "rusqlite"
-  ]
+  "cSpell.words": ["rusqlite", "thiserror"]
 }
