@@ -3,6 +3,7 @@ use std::{error, result};
 
 mod cli;
 mod database;
+mod error_handling;
 mod npm;
 
 fn main() -> result::Result<(), Box<dyn error::Error>> {

@@ -1,18 +1,9 @@
 use rusqlite::Connection;
-use std::error;
-use thiserror::Error;
 
+use crate::error_handling::database::FindAllError;
 use crate::npm;
 
 const SCHEMA_REGISTRY_V1_0_0: &str = include_str!("schema_registry_v1.0.0.sql");
-
-#[derive(Error, Debug)]
-pub enum FindAllError {
-    #[error("Failed to execute SQL query: {0}")]
-    SelectError(#[from] rusqlite::Error),
-    #[error("Failed to retrieve registry URL: {0}")]
-    RegistryError(#[from] Box<dyn error::Error>),
-}
 
 pub struct DatabaseManager {
     connection: Connection,
