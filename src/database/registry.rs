@@ -58,4 +58,12 @@ impl DatabaseManager {
         )?;
         Ok(())
     }
+
+    pub fn create(&self, name: &str, url: &str) -> Result<(), rusqlite::Error> {
+        self.connection.execute(
+            "INSERT INTO registry (name, url) VALUES (?, ?)",
+            [name, url],
+        )?;
+        Ok(())
+    }
 }

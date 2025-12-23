@@ -17,4 +17,12 @@ pub enum Commands {
         #[arg(short, long)]
         name: String,
     },
+
+    /// Add a new registry [use --name <registry_name> --url <registry_url>]
+    Add {
+        #[arg(short, long)]
+        name: String,
+        #[arg(short, long)]
+        url: String,
+    },
 }

@@ -22,6 +22,11 @@ fn main() -> result::Result<(), Box<dyn error::Error>> {
             let success_msg = npm::config::set_registry(&url, &name)?;
             println!("{}", success_msg);
         }
+
+        cli::lib::Commands::Add { name, url } => {
+            connection.create(&name, &url)?;
+            println!("Registry '{}' added successfully", name);
+        }
     }
     Ok(())
 }
