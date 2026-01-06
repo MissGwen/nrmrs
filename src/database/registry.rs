@@ -1,6 +1,7 @@
 use rusqlite::Connection;
+use std::io;
 
-use crate::error_handling::database::FindAllError;
+use crate::error_handling::database::{CreateError, FindAllError};
 use crate::npm;
 
 const SCHEMA_REGISTRY_V1_0_0: &str = include_str!("schema_registry_v1.0.0.sql");
@@ -59,7 +60,13 @@ impl DatabaseManager {
         Ok(())
     }
 
-    pub fn create(&self, name: &str, url: &str) -> Result<(), rusqlite::Error> {
+    pub fn create(&self, name: &str, url: &str) -> Result<(), CreateError> {
+        let result = self.find_url_by_name(name);
+        if result.is_ok() {
+            let err_msg = format!("Npm registry '{}' already exists", name);
+            let io_error = io::Error::new(io::ErrorKind::Other, err_msg);
+            return Err(CreateError::SelectError(io_error));
+        }
         self.connection.execute(
             "INSERT INTO registry (name, url) VALUES (?, ?)",
             [name, url],

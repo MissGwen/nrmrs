@@ -1,3 +1,4 @@
+use std::io;
 use thiserror::Error;
 
 use crate::error_handling::npm_config::ConfigError;
@@ -8,4 +9,12 @@ pub enum FindAllError {
     SelectError(#[from] rusqlite::Error),
     #[error("Failed to retrieve registry URL: {0}")]
     RegistryError(#[from] ConfigError),
+}
+
+#[derive(Error, Debug)]
+pub enum CreateError {
+    #[error("Npm registry already exists: {0}")]
+    SelectError(#[from] io::Error),
+    #[error("Failed to execute SQL query: {0}")]
+    AddError(#[from] rusqlite::Error),
 }
