@@ -18,3 +18,11 @@ pub enum CreateError {
     #[error("Failed to execute SQL query: {0}")]
     AddError(#[from] rusqlite::Error),
 }
+
+#[derive(Error, Debug)]
+pub enum DeleteError {
+    #[error("Npm registry does not exist: {0}")]
+    SelectError(#[from] io::Error),
+    #[error("Failed to execute SQL query: {0}")]
+    RemoveError(#[from] rusqlite::Error),
+}

@@ -25,4 +25,10 @@ pub enum Commands {
         #[arg(short, long)]
         url: String,
     },
+
+    /// Remove a registry [use --name <registry_name>]
+    Delete {
+        #[arg(short, long)]
+        name: String,
+    },
 }

@@ -20,12 +20,16 @@ fn main() -> result::Result<(), Box<dyn error::Error>> {
         cli::lib::Commands::Use { name } => {
             let url = connection.find_url_by_name(&name)?;
             let success_msg = npm::config::set_registry(&url, &name)?;
+            connection.update_current(&url)?;
             println!("{}", success_msg);
         }
-
         cli::lib::Commands::Add { name, url } => {
             connection.create(&name, &url)?;
             println!("Registry '{}' added successfully", name);
+        }
+        cli::lib::Commands::Delete { name } => {
+            connection.delete(&name)?;
+            println!("Registry '{}' removed successfully", name);
         }
     }
     Ok(())
