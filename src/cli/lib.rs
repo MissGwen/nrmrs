@@ -18,7 +18,7 @@ pub enum Commands {
         name: String,
     },
 
-    /// Add a new registry [use --name <registry_name> --url <registry_url>]
+    /// Add a new registry [add --name <registry_name> --url <registry_url>]
     Add {
         #[arg(short, long)]
         name: String,
@@ -26,7 +26,7 @@ pub enum Commands {
         url: String,
     },
 
-    /// Remove a registry [use --name <registry_name>]
+    /// Remove a registry [delete --name <registry_name>]
     Delete {
         #[arg(short, long)]
         name: String,

@@ -1,10 +1,13 @@
 use rusqlite::Connection;
 use std::io;
+use std::path::PathBuf;
 
 use crate::error_handling::database::{CreateError, DeleteError, FindAllError};
 use crate::npm;
 
 const SCHEMA_REGISTRY_V1_0_0: &str = include_str!("schema_registry_v1.0.0.sql");
+const APP_DIR_NAME: &str = "nrmrs";
+const DB_FILE_NAME: &str = "npm-registry.db";
 
 pub struct DatabaseManager {
     connection: Connection,
@@ -18,8 +21,9 @@ pub struct Registry {
 }
 
 impl DatabaseManager {
-    pub fn init() -> Result<Self, rusqlite::Error> {
-        let connection = Connection::open("npm-registry.db")?;
+    pub fn init() -> Result<Self, Box<dyn std::error::Error>> {
+        let db_path = resolve_db_path()?;
+        let connection = Connection::open(db_path)?;
         connection.execute_batch(SCHEMA_REGISTRY_V1_0_0)?;
         Ok(Self { connection })
     }
@@ -99,4 +103,17 @@ impl DatabaseManager {
             .execute("DELETE FROM registry WHERE name = ?", [name])?;
         Ok(())
     }
+}
+
+fn resolve_db_path() -> Result<PathBuf, io::Error> {
+    let mut app_data_dir = dirs::data_dir().ok_or_else(|| {
+        io::Error::new(
+            io::ErrorKind::NotFound,
+            "Cannot resolve system user data directory",
+        )
+    })?;
+    app_data_dir.push(APP_DIR_NAME);
+    std::fs::create_dir_all(&app_data_dir)?;
+    app_data_dir.push(DB_FILE_NAME);
+    Ok(app_data_dir)
 }
