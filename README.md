@@ -31,6 +31,23 @@ cargo build --release
 cargo install --path .
 ```
 
+### Maintainer Release
+Create and push a version tag (for example `v0.1.0`) to trigger GitHub Actions release:
+
+```bash
+git tag v0.1.0
+git push origin v0.1.0
+```
+
+The workflow publishes binary assets to GitHub Releases for:
+- Windows x64 (`x86_64-pc-windows-msvc`, `.zip`)
+- macOS arm64 (`aarch64-apple-darwin`, `.tar.gz`)
+- Linux x64 (`x86_64-unknown-linux-gnu`, `.tar.gz`)
+
+Asset naming format:
+- `nrmrs-{version}-{target}.{zip|tar.gz}`
+- `nrmrs-{version}-{target}.{zip|tar.gz}.sha256`
+
 ### Commands
 
 Show help:
