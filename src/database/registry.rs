@@ -1,0 +1,102 @@
+use rusqlite::Connection;
+use std::io;
+
+use crate::error_handling::database::{CreateError, DeleteError, FindAllError};
+use crate::npm;
+
+const SCHEMA_REGISTRY_V1_0_0: &str = include_str!("schema_registry_v1.0.0.sql");
+
+pub struct DatabaseManager {
+    connection: Connection,
+}
+
+#[derive(Debug)]
+pub struct Registry {
+    pub name: String,
+    pub url: String,
+    pub is_current: bool,
+}
+
+impl DatabaseManager {
+    pub fn init() -> Result<Self, rusqlite::Error> {
+        let connection = Connection::open("npm-registry.db")?;
+        connection.execute_batch(SCHEMA_REGISTRY_V1_0_0)?;
+        Ok(Self { connection })
+    }
+
+    pub fn find_all(&self) -> Result<Vec<Registry>, FindAllError> {
+        let current_registry = npm::config::get_registry()?;
+        self.update_current(&current_registry)?;
+        let mut stmt = self
+            .connection
+            .prepare("SELECT name, url, is_current FROM registry")?;
+        let registry_vec: Vec<Registry> = stmt
+            .query_map([], |row| {
+                Ok(Registry {
+                    name: row.get(0)?,
+                    url: row.get(1)?,
+                    is_current: row.get(2)?,
+                })
+            })?
+            .collect::<Result<_, _>>()?;
+        Ok(registry_vec)
+    }
+
+    pub fn find_url_by_name(&self, name: &str) -> Result<String, rusqlite::Error> {
+        let mut stmt = self
+            .connection
+            .prepare("SELECT url FROM registry WHERE name = ?")?;
+        let url = stmt.query_row([name], |row| row.get(0))?;
+        Ok(url)
+    }
+
+    pub fn find_is_current(&self, name: &str) -> Result<bool, rusqlite::Error> {
+        let mut stmt = self
+            .connection
+            .prepare("SELECT is_current FROM registry WHERE name = ?")?;
+        let is_current: bool = stmt.query_row([name], |row| row.get(0))?;
+        Ok(is_current)
+    }
+
+    pub fn update_current(&self, current_registry: &str) -> Result<(), rusqlite::Error> {
+        self.connection
+            .execute("UPDATE registry SET is_current = 0", ())?;
+        self.connection.execute(
+            "UPDATE registry SET is_current = 1 WHERE url = ?",
+            [current_registry],
+        )?;
+        Ok(())
+    }
+
+    pub fn create(&self, name: &str, url: &str) -> Result<(), CreateError> {
+        let result = self.find_url_by_name(name);
+        if result.is_ok() {
+            let err_msg = format!("Npm registry '{}' already exists", name);
+            let io_error = io::Error::new(io::ErrorKind::Other, err_msg);
+            return Err(CreateError::SelectError(io_error));
+        }
+        self.connection.execute(
+            "INSERT INTO registry (name, url) VALUES (?, ?)",
+            [name, url],
+        )?;
+        Ok(())
+    }
+
+    pub fn delete(&self, name: &str) -> Result<(), DeleteError> {
+        let result = self.find_url_by_name(name);
+        if result.is_err() {
+            let err_msg = format!("Npm registry '{}' does not exist", name);
+            let io_error = io::Error::new(io::ErrorKind::Other, err_msg);
+            return Err(DeleteError::SelectError(io_error));
+        }
+        let is_current = self.find_is_current(name)?;
+        if is_current {
+            let err_msg = format!("Cannot delete the current npm registry '{}'", name);
+            let io_error = io::Error::new(io::ErrorKind::Other, err_msg);
+            return Err(DeleteError::SelectError(io_error));
+        }
+        self.connection
+            .execute("DELETE FROM registry WHERE name = ?", [name])?;
+        Ok(())
+    }
+}
