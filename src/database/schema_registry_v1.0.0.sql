@@ -21,3 +21,6 @@ CREATE TABLE IF NOT EXISTS registry (
 INSERT INTO registry (name, url, is_preset) SELECT 'npm', 'https://registry.npmjs.org/', 1 WHERE NOT EXISTS (SELECT 1 FROM registry WHERE name = 'npm');
 INSERT INTO registry (name, url, is_preset) SELECT 'yarn', 'https://registry.yarnpkg.com/', 1 WHERE NOT EXISTS (SELECT 1 FROM registry WHERE name = 'yarn');
 INSERT INTO registry (name, url, is_preset) SELECT 'taobao', 'https://registry.npmmirror.com/', 1 WHERE NOT EXISTS (SELECT 1 FROM registry WHERE name = 'taobao');
+INSERT INTO registry (name, url, is_preset) SELECT 'tencent', 'https://mirrors.tencent.com/npm/', 1 WHERE NOT EXISTS (SELECT 1 FROM registry WHERE name = 'tencent');
+INSERT INTO registry (name, url, is_preset) SELECT 'cnpm', 'https://r.cnpmjs.org/', 1 WHERE NOT EXISTS (SELECT 1 FROM registry WHERE name = 'cnpm');
+INSERT INTO registry (name, url, is_preset) SELECT 'huawei', 'https://repo.huaweicloud.com/repository/npm/', 1 WHERE NOT EXISTS (SELECT 1 FROM registry WHERE name = 'huawei');
