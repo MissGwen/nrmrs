@@ -4,7 +4,7 @@
   "description": "npm registry manager with Rust",
   "private": false,
   "bin": {
-    "nrmrs": "./bin/nrmrs"
+    "nrmrs": "./bin/nrmrs.js"
   },
   "keywords": [
     "npm",
