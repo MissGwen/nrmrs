@@ -12,6 +12,8 @@ jobs:
   release:
     name: build-${{ matrix.target }}
     runs-on: ${{ matrix.os }}
+    env:
+      ASSET_FILE: ""
     strategy:
       fail-fast: false
       matrix:
@@ -19,15 +21,12 @@ jobs:
           - os: windows-latest
             target: x86_64-pc-windows-msvc
             bin_name: nrmrs.exe
-            archive_ext: zip
           - os: macos-latest
             target: aarch64-apple-darwin
             bin_name: nrmrs
-            archive_ext: tar.gz
           - os: ubuntu-latest
             target: x86_64-unknown-linux-gnu
             bin_name: nrmrs
-            archive_ext: tar.gz
 
     steps:
       - name: Checkout
@@ -46,35 +45,12 @@ jobs:
         run: |
           "VERSION=${env:GITHUB_REF_NAME}" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
           "ASSET_BASENAME=nrmrs-$($env:GITHUB_REF_NAME)-${{ matrix.target }}" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-
-      - name: Package (zip for Windows)
-        if: matrix.archive_ext == 'zip'
-        shell: pwsh
-        run: |
-          New-Item -ItemType Directory -Path $env:ASSET_BASENAME -Force | Out-Null
-          Copy-Item "target/${{ matrix.target }}/release/${{ matrix.bin_name }}" "$env:ASSET_BASENAME/${{ matrix.bin_name }}"
-          Compress-Archive -Path "$env:ASSET_BASENAME/*" -DestinationPath "$env:ASSET_BASENAME.zip" -Force
-
-      - name: Package (tar.gz for macOS/Linux)
-        if: matrix.archive_ext == 'tar.gz'
-        shell: bash
-        run: |
-          set -euo pipefail
-          mkdir -p "${ASSET_BASENAME}"
-          cp "target/${{ matrix.target }}/release/${{ matrix.bin_name }}" "${ASSET_BASENAME}/${{ matrix.bin_name }}"
-          tar -czf "${ASSET_BASENAME}.tar.gz" "${ASSET_BASENAME}"
-
-      - name: Generate SHA256 file
-        shell: pwsh
-        run: |
-          if ("${{ matrix.archive_ext }}" -eq "zip") {
-            $asset = "$env:ASSET_BASENAME.zip"
+          if ("${{ matrix.bin_name }}" -eq "nrmrs.exe") {
+            $asset = "$env:ASSET_BASENAME.exe"
           } else {
-            $asset = "$env:ASSET_BASENAME.tar.gz"
+            $asset = "$env:ASSET_BASENAME"
           }
-          $fileName = Split-Path -Leaf $asset
-          $hash = (Get-FileHash -Algorithm SHA256 $asset).Hash.ToLower()
-          Set-Content -Path "$asset.sha256" -Value "$hash  $fileName" -NoNewline
+          Copy-Item "target/${{ matrix.target }}/release/${{ matrix.bin_name }}" $asset
           "ASSET_FILE=$asset" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
       - name: Upload to GitHub Release
@@ -82,4 +58,3 @@ jobs:
         with:
           files: |
             ${{ env.ASSET_FILE }}
-            ${{ env.ASSET_FILE }}.sha256
