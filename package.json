@@ -1,0 +1,32 @@
+{
+  "name": "nrmrs",
+  "version": "0.1.2",
+  "description": "npm registry manager with Rust",
+  "private": false,
+  "bin": {
+    "nrmrs": "./bin/nrmrs"
+  },
+  "keywords": [
+    "npm",
+    "registry",
+    "manager",
+    "rust"
+  ],
+  "author": "MissGwen <missgwen0211@gmail.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MissGwen/nrmrs.git"
+  },
+  "homepage": "https://github.com/MissGwen/nrmrs",
+  "bugs": {
+    "url": "https://github.com/MissGwen/nrmrs/issues"
+  },
+  "files": [
+    "bin/",
+    "install.js"
+  ],
+  "scripts": {
+    "postinstall": "node install.js"
+  }
+}
