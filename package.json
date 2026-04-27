@@ -1,6 +1,6 @@
 {
   "name": "nrmrs",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "npm registry manager with Rust",
   "private": false,
   "bin": {
